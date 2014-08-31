@@ -73,7 +73,7 @@ module.exports = (config)->
         config.maxConcurrency or= 5
         config.maxLockMinutes or= 120
         try
-          handler = require(path.join(process.cwd(), options.script))
+          handler = require(options.script)
           handler.apply(this, [options, config, workerCallback])
         catch e
           workerCallback(e)
