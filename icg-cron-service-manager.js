@@ -78,7 +78,7 @@
           config.maxConcurrency || (config.maxConcurrency = 5);
           config.maxLockMinutes || (config.maxLockMinutes = 120);
           try {
-            handler = require(options.script);
+            handler = require(path.join(process.cwd(), options.script));
             return handler.apply(this, [options, config, workerCallback]);
           } catch (_error) {
             e = _error;
