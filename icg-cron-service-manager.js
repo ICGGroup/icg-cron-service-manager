@@ -100,7 +100,7 @@
           _ref.debug("creating job", job.job);
         }
         cronJob = new CronJob(job.cron, function() {
-          var cb, _ref1, _ref2;
+          var cb, e, _ref1, _ref2;
           cb = function(err) {
             var _ref1, _ref2;
             running = false;
@@ -115,7 +115,12 @@
               _ref1.info("Job starting", job.job);
             }
             running = true;
-            return workerFn(job.job, cb);
+            try {
+              return workerFn(job.job, cb);
+            } catch (_error) {
+              e = _error;
+              return cb(e);
+            }
           } else {
             return (_ref2 = config.log) != null ? _ref2.warn("Job skipped due to already running process.") : void 0;
           }
