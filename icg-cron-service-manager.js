@@ -48,21 +48,6 @@
         workerCallback("Missing apiBaseUrl");
       }
       if (!config.credentials) {
-        workerCallback("Missing credentials");
-      }
-      if (!config.credentials.user) {
-        workerCallback("Missing credentials.user");
-      }
-      if (!config.credentials.password) {
-        workerCallback("Missing credentials.password");
-      }
-      if (!config.credentials) {
-        workerCallback("Missing credentials");
-      }
-      if (!config.sessionPath) {
-        workerCallback("Missing sessionPath");
-      }
-      if (!config.credentials) {
         config.maxConcurrency || (config.maxConcurrency = 5);
         config.maxLockMinutes || (config.maxLockMinutes = 120);
         try {

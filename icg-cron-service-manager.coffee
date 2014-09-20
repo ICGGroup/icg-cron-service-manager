@@ -41,21 +41,6 @@ module.exports = (config)->
     if not config.apiBaseUrl
       workerCallback("Missing apiBaseUrl")
 
-    if not config.credentials
-      workerCallback("Missing credentials")
-
-    if not config.credentials.user
-      workerCallback("Missing credentials.user")
-
-    if not config.credentials.password
-      workerCallback("Missing credentials.password")
-
-    if not config.credentials
-      workerCallback("Missing credentials")
-
-    if not config.sessionPath
-      workerCallback("Missing sessionPath")
-
 
     # Find items that have been locked for longer than the target duration
 
