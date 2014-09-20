@@ -108,7 +108,10 @@ module.exports = (config)->
         if not running
           config.log?.info("Job starting", job.job)
           running  = true
-          workerFn(job.job, cb)
+          try
+            workerFn(job.job, cb)
+          catch e
+            cb(e)
         else
           config.log?.warn("Job skipped due to already running process.")
       jobs.push(cronJob)
