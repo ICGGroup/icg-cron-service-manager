@@ -33,7 +33,7 @@
       ]
      */
     workerFn = function() {
-      var callOpts, options, workerCallback;
+      var callOpts, e, handler, options, workerCallback;
       if (arguments.length === 1) {
         options = {};
         workerCallback = arguments[0];
@@ -62,32 +62,44 @@
       if (!config.sessionPath) {
         workerCallback("Missing sessionPath");
       }
-      callOpts = {
-        data: {
-          userId: config.credentials.user,
-          password: config.credentials.password
+      if (!config.credentials) {
+        config.maxConcurrency || (config.maxConcurrency = 5);
+        config.maxLockMinutes || (config.maxLockMinutes = 120);
+        try {
+          handler = require(options.script);
+          return handler.apply(this, [options, config, workerCallback]);
+        } catch (_error) {
+          e = _error;
+          return workerCallback(e);
         }
-      };
-      return restClient.post(config.sessionPath, callOpts, function(err, response) {
-        var e, handler, _ref;
-        if (err) {
-          if ((_ref = config.log) != null) {
-            _ref.error(err);
+      } else {
+        callOpts = {
+          data: {
+            userId: config.credentials.user,
+            password: config.credentials.password
           }
-          return workerCallback(err);
-        } else {
-          config.secToken = response.body.secToken;
-          config.maxConcurrency || (config.maxConcurrency = 5);
-          config.maxLockMinutes || (config.maxLockMinutes = 120);
-          try {
-            handler = require(options.script);
-            return handler.apply(this, [options, config, workerCallback]);
-          } catch (_error) {
-            e = _error;
-            return workerCallback(e);
+        };
+        return restClient.post(config.sessionPath, callOpts, function(err, response) {
+          var _ref;
+          if (err) {
+            if ((_ref = config.log) != null) {
+              _ref.error(err);
+            }
+            return workerCallback(err);
+          } else {
+            config.secToken = response.body.secToken;
+            config.maxConcurrency || (config.maxConcurrency = 5);
+            config.maxLockMinutes || (config.maxLockMinutes = 120);
+            try {
+              handler = require(options.script);
+              return handler.apply(this, [options, config, workerCallback]);
+            } catch (_error) {
+              e = _error;
+              return workerCallback(e);
+            }
           }
-        }
-      });
+        });
+      }
     };
     if (jobs && jobs.length > 0) {
       _.each(jobs, function(job) {

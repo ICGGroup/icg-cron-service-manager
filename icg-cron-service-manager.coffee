@@ -58,25 +58,36 @@ module.exports = (config)->
 
 
     # Find items that have been locked for longer than the target duration
-    callOpts =
-      data:
-        userId: config.credentials.user
-        password: config.credentials.password
 
-    restClient.post config.sessionPath, callOpts, (err, response)->
-      if err
-        config.log?.error(err)
-        workerCallback(err)
-      else
-        config.secToken = response.body.secToken
+    if not config.credentials
+      config.maxConcurrency or= 5
+      config.maxLockMinutes or= 120
+      try
+        handler = require(options.script)
+        handler.apply(this, [options, config, workerCallback])
+      catch e
+        workerCallback(e)
 
-        config.maxConcurrency or= 5
-        config.maxLockMinutes or= 120
-        try
-          handler = require(options.script)
-          handler.apply(this, [options, config, workerCallback])
-        catch e
-          workerCallback(e)
+    else
+      callOpts =
+        data:
+          userId: config.credentials.user
+          password: config.credentials.password
+
+      restClient.post config.sessionPath, callOpts, (err, response)->
+        if err
+          config.log?.error(err)
+          workerCallback(err)
+        else
+          config.secToken = response.body.secToken
+
+          config.maxConcurrency or= 5
+          config.maxLockMinutes or= 120
+          try
+            handler = require(options.script)
+            handler.apply(this, [options, config, workerCallback])
+          catch e
+            workerCallback(e)
 
   # Stop any existing jobs, in the case of an unhandled error
   if jobs and jobs.length > 0
