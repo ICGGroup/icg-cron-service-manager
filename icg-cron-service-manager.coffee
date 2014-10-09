@@ -36,8 +36,7 @@ module.exports = (config, options)->
 
         # so now we are ready to fork our workers, one for each job, but if we want to pass
 
-        if jobs and jobs.length > 0
-          _.each cluster.workers, (w)->
+        _.each cluster.workers, (w)->
             w.kill()
         _.each config.jobs, (jobOptions)->
           jobOptions.secToken = config.secToken
