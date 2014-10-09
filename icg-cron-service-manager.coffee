@@ -4,9 +4,9 @@ path = require("path")
 _ = require("lodash")
 cluster = require('cluster')
 domain = require("domain")
-oi = require("oibackoff")
 logWrapper = require("./lib/log-wrapper")
 moment = require('moment')
+CronJob = require('cron').CronJob
 jobs = []
 
 module.exports = (config, options)->
@@ -121,15 +121,20 @@ module.exports = (config, options)->
       if not config.apiBaseUrl
         return config.log?.error("Missing apiBaseUrl")
 
+      running = false
+
       cronJob = new CronJob options.cron, ->
         cb = (err)->
           if err
             config.log?.error(err, job)
           else
-            config.log?.info("Job completed", job.job)
+            config.log?.info("Job completed", options.job.name)
+          running = false
 
-        config.log?.info("Job starting", job.job)
-        workerFn(job.job, cb)
+        if not running
+          config.log?.info("Job starting", options.job)
+          running = true
+          handler(options.job, config, cb)
       cronJob.start()
 
 
