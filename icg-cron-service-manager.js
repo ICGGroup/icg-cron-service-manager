@@ -44,11 +44,9 @@
           throw new Error("Unable to log in to the API");
         } else {
           config.secToken = response.body.secToken;
-          if (jobs && jobs.length > 0) {
-            _.each(cluster.workers, function(w) {
-              return w.kill();
-            });
-          }
+          _.each(cluster.workers, function(w) {
+            return w.kill();
+          });
           return _.each(config.jobs, function(jobOptions) {
             var e, initJobWorker, jobWorker, lastHeartbeat, _ref1, _ref2;
             jobOptions.secToken = config.secToken;
@@ -160,7 +158,7 @@
               _ref5.info("Job starting", options.job);
             }
             running = true;
-            return handler(options.job, config, cb);
+            return handler(options, config, cb);
           }
         });
         return cronJob.start();

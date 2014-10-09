@@ -133,7 +133,7 @@ module.exports = (config, options)->
         if not running
           config.log?.info("Job starting", options.job)
           running = true
-          handler(options.job, config, cb)
+          handler(options, config, cb)
       cronJob.start()
 
 
