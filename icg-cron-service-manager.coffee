@@ -106,7 +106,7 @@ module.exports = (config, options)->
     jobDomain = domain.create()
 
     jobDomain.on "error", (err)->
-      config.log?.error(err)
+      config.log?.error(err.stack)
       setTimeout ()->
         process.exit(1);
       , 5000
