@@ -122,11 +122,11 @@
       jobDomain.on("error", function(err) {
         var _ref3;
         if ((_ref3 = config.log) != null) {
-          _ref3.error(err);
+          _ref3.error(err.stack);
         }
         setTimeout(function() {
           return process.exit(1);
-        }, 5000);
+        }, config.errorRestartDelay || 120000);
         return cluster.worker.disconnect();
       });
       return jobDomain.run(function() {

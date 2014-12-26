@@ -109,7 +109,7 @@ module.exports = (config, options)->
       config.log?.error(err.stack)
       setTimeout ()->
         process.exit(1);
-      , 5000
+      , config.errorRestartDelay || 120000
       cluster.worker.disconnect()
 
 
