@@ -155,32 +155,29 @@
         return cluster.worker.disconnect();
       });
       return jobDomain.run(function() {
-        var cronJob, running, _ref4, _ref5;
+        var cronJob, running, _ref4;
         if (!config) {
           return (_ref4 = config.log) != null ? _ref4.error("Invalid Config") : void 0;
         }
-        if (!config.apiBaseUrl) {
-          return (_ref5 = config.log) != null ? _ref5.error("Missing apiBaseUrl") : void 0;
-        }
         running = false;
         cronJob = new CronJob(options.cron, function() {
-          var cb, _ref6;
+          var cb, _ref5;
           cb = function(err) {
-            var _ref6, _ref7;
+            var _ref5, _ref6;
             if (err) {
-              if ((_ref6 = config.log) != null) {
-                _ref6.error(err, job);
+              if ((_ref5 = config.log) != null) {
+                _ref5.error(err, job);
               }
             } else {
-              if ((_ref7 = config.log) != null) {
-                _ref7.info("Job completed", options.job.name);
+              if ((_ref6 = config.log) != null) {
+                _ref6.info("Job completed", options.job.name);
               }
             }
             return running = false;
           };
           if (!running) {
-            if ((_ref6 = config.log) != null) {
-              _ref6.info("Job starting", options.job);
+            if ((_ref5 = config.log) != null) {
+              _ref5.info("Job starting", options.job);
             }
             running = true;
             return handler(options, config, cb);

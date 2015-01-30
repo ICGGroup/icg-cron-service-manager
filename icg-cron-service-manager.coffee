@@ -135,9 +135,6 @@ module.exports = (config, options)->
       if not config
         return config.log?.error("Invalid Config")
 
-      if not config.apiBaseUrl
-        return config.log?.error("Missing apiBaseUrl")
-
       running = false
 
       cronJob = new CronJob options.cron, ->
