@@ -1,6 +1,6 @@
 {
   "name": "icg-cron-service-manager",
-  "version": "0.3.22",
+  "version": "0.3.23",
   "description": "ICG Cron Service Manager",
   "main": "icg-cron-service-manager.js",
   "scripts": {
