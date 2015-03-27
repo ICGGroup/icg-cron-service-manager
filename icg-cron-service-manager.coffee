@@ -29,7 +29,7 @@ module.exports = (config, options)->
         config.secToken = response.body.secToken
 
         if cb
-          cb(null, secToken)
+          cb(null, config.secToken)
 
 
   if cluster.isMaster
