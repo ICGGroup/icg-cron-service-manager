@@ -24,6 +24,31 @@
 
   module.exports = function(config, options) {
     var e, handler, job, jobDomain, launchServiceWorkers, restClient, serviceLogin, _ref, _ref1, _ref2, _ref3;
+    serviceLogin = function(cb) {
+      var callOpts, restClient;
+      restClient = require("icg-rest-client")(config.apiBaseUrl);
+      callOpts = {
+        data: {
+          userId: config.credentials.user,
+          password: config.credentials.password
+        }
+      };
+      return restClient.post(config.sessionPath, callOpts, function(err, response) {
+        var _ref;
+        if (err) {
+          if ((_ref = config.log) != null) {
+            _ref.error(err);
+          }
+          throw new Error("Unable to log in to the API");
+          return cb(err);
+        } else {
+          config.secToken = response.body.secToken;
+          if (cb) {
+            return cb(null, secToken);
+          }
+        }
+      });
+    };
     if (cluster.isMaster) {
       if (!config.jobs || config.jobs.length === 0) {
         throw new Error("Missing required configuration option 'jobs'");
@@ -81,43 +106,12 @@
         }
         launchServiceWorkers();
       } else {
-        serviceLogin = function(cb) {
-          var callOpts, restClient;
-          restClient = require("icg-rest-client")(config.apiBaseUrl);
-          callOpts = {
-            data: {
-              userId: config.credentials.user,
-              password: config.credentials.password
-            }
-          };
-          return restClient.post(config.sessionPath, callOpts, function(err, response) {
-            var _ref1;
-            if (err) {
-              if ((_ref1 = config.log) != null) {
-                _ref1.error(err);
-              }
-              throw new Error("Unable to log in to the API");
-            } else {
-              config.secToken = response.body.secToken;
-              if (cb) {
-                return cb();
-              }
-            }
-          });
-        };
         serviceLogin(function() {
           return launchServiceWorkers();
         });
-        if (config.refreshLoginInterval) {
-          setTimeout(function() {
-            return serviceLogin(function() {
-              return config != null ? config.log.info("Sec Token Refreshed") : void 0;
-            });
-          }, config.refreshLoginInterval);
-        }
       }
       return cluster.on("disconnect", function(worker) {
-        return config.log.warn("A worker process disconnected form the cluster.");
+        return config.log.warn("A worker process disconnected from the cluster.");
       });
     } else {
       options = JSON.parse(process.env.jobOptions);
@@ -143,6 +137,14 @@
       if ((_ref3 = config.log) != null) {
         _ref3.info("Creating Job Domain for :" + job.script);
       }
+      setTimeout(function() {
+        return serviceLogin(function(err, secToken) {
+          if (!err && secToken) {
+            options.secToken = secToken;
+            return config != null ? config.log.info("Sec Token Refreshed") : void 0;
+          }
+        });
+      }, config.loginExpirationMs || 3600000);
       jobDomain = domain.create();
       jobDomain.on("error", function(err) {
         var _ref4;

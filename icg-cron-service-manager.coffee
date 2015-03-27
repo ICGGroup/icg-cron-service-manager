@@ -10,6 +10,28 @@ CronJob = require('cron').CronJob
 jobs = []
 
 module.exports = (config, options)->
+
+  serviceLogin = (cb)->
+    restClient = require("icg-rest-client")(config.apiBaseUrl)
+
+    callOpts =
+      data:
+        userId: config.credentials.user
+        password: config.credentials.password
+
+    restClient.post config.sessionPath, callOpts, (err, response)->
+      if err
+        config.log?.error(err)
+        throw new Error("Unable to log in to the API")
+        cb(err)
+      else
+        # Here we are logged into the API, so let's go ahead and add the secToken to the config Object
+        config.secToken = response.body.secToken
+
+        if cb
+          cb(null, secToken)
+
+
   if cluster.isMaster
 
     # a single process controls the creation of workers (one per configured job).
@@ -63,39 +85,13 @@ module.exports = (config, options)->
       launchServiceWorkers()
     else
       #the master should log into the api server and pass this information when the individual workers are forked
-      serviceLogin = (cb)->
-        restClient = require("icg-rest-client")(config.apiBaseUrl)
-
-        callOpts =
-          data:
-            userId: config.credentials.user
-            password: config.credentials.password
-
-        restClient.post config.sessionPath, callOpts, (err, response)->
-          if err
-            config.log?.error(err)
-            throw new Error("Unable to log in to the API")
-          else
-
-            # Here we are logged into the API, so let's go ahead and add the secToken to the config Object
-            config.secToken = response.body.secToken
-
-            if cb
-              cb()
-
-
       serviceLogin ()->
         # so now we are ready to fork our workers, one for each job
         launchServiceWorkers()
 
-      if config.refreshLoginInterval
-        setTimeout ()->
-          serviceLogin ()->
-            config?.log.info("Sec Token Refreshed")
-        , config.refreshLoginInterval
 
     cluster.on "disconnect", (worker)->
-      config.log.warn("A worker process disconnected form the cluster.")
+      config.log.warn("A worker process disconnected from the cluster.")
 
 
 
@@ -120,6 +116,14 @@ module.exports = (config, options)->
       config.log?.error("unable to load:", job.script)
 
     config.log?.info("Creating Job Domain for :#{job.script}")
+
+    setTimeout ()->
+      serviceLogin (err, secToken)->
+        if not err and secToken
+          options.secToken = secToken
+          config?.log.info("Sec Token Refreshed")
+    , config.loginExpirationMs || 3600000
+
 
     jobDomain = domain.create()
 
@@ -149,6 +153,7 @@ module.exports = (config, options)->
           config.log?.info("Job starting", options.job)
           running = true
           handler(options, config, cb)
+
       cronJob.start()
 
 
